@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const fs = require('fs');
 
 const app = express();
 
@@ -22,6 +23,14 @@ app.use(cors({
 // Basic middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from uploads directory
+const uploadsPath = path.join(__dirname, '../../uploads');
+console.log('Uploads directory path:', uploadsPath);
+if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsPath));
 
 // Routes
 const vehicleRoutes = require('./routes/vehicle.routes');
