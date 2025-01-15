@@ -5,24 +5,13 @@ require('dotenv').config();
 
 const app = express();
 
-// More permissive CORS configuration for testing
+// CORS configuration
 app.use(cors({
-  origin: '*',  // Allow all origins temporarily
+  origin: ['https://gaadiyaan.com', 'http://localhost:5500'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: '*',  // Allow all headers
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
-
-// Additional headers for CORS
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', '*');
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
 
 // Basic middleware
 app.use(express.json({ limit: '50mb' }));
@@ -41,16 +30,21 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling middleware with more details
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error details:', err);
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
-    error: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    error: err.message
   });
 });
 
-// For Vercel, export the express api
-module.exports = app.listen();
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// Export the Express app
+module.exports = app;
