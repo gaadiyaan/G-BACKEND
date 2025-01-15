@@ -7,7 +7,18 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5506', 'http://127.0.0.1:5506'],  // Add your frontend URL
+  origin: [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'http://localhost:5506',
+    'http://127.0.0.1:5506',
+    'https://gaadiyaan.vercel.app',
+    'https://www.gaadiyaan.vercel.app',
+    'https://gaadiyaan.com',
+    'https://www.gaadiyaan.com',
+    'http://gaadiyaan.com',
+    'http://www.gaadiyaan.com'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
   credentials: true,
@@ -16,8 +27,8 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files
 app.use('/assets', express.static(path.join(__dirname, '../public/assets')));
