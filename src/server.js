@@ -5,13 +5,25 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS configuration
+// Most permissive CORS configuration
 app.use(cors({
-  origin: ['https://gaadiyaan.com', 'http://localhost:5500'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: '*',
+    credentials: true
 }));
+
+// Additional CORS headers for absolute certainty
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', '*');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
 
 // Basic middleware
 app.use(express.json({ limit: '50mb' }));
