@@ -1,26 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const fs = require('fs');
-const fs = require('fs');
 
 const app = express();
-
-// CORS configuration
-app.use(cors({
-    origin: [
-        'https://gaadiyaan.com',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'http://localhost:5506',
-        'http://127.0.0.1:5506'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
-    credentials: true
-}));
 
 // CORS configuration
 app.use(cors({
