@@ -10,6 +10,9 @@ const app = express();
 app.use(cors({
     origin: [
         'https://gaadiyaan.com',
+        'http://gaadiyaan.com',
+        'https://www.gaadiyaan.com',
+        'http://www.gaadiyaan.com',
         'http://localhost:5500',
         'http://127.0.0.1:5500',
         'http://localhost:5506',
@@ -17,8 +20,19 @@ app.use(cors({
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
-    credentials: true
+    credentials: true,
+    exposedHeaders: ['Content-Length', 'Content-Type']
 }));
+
+// Enable CORS for static files
+const staticFileOptions = {
+    setHeaders: (res, path, stat) => {
+        res.set('Access-Control-Allow-Origin', 'https://gaadiyaan.com');
+        res.set('Access-Control-Allow-Methods', 'GET');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        res.set('Access-Control-Allow-Credentials', 'true');
+    }
+};
 
 // Basic middleware
 app.use(express.json({ limit: '50mb' }));
@@ -30,7 +44,7 @@ console.log('Uploads directory path:', uploadsPath);
 if (!fs.existsSync(uploadsPath)) {
     fs.mkdirSync(uploadsPath, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(uploadsPath, staticFileOptions));
 
 // Serve static assets
 const assetsPath = path.join(__dirname, 'assets');
@@ -38,7 +52,7 @@ console.log('Assets directory path:', assetsPath);
 if (!fs.existsSync(assetsPath)) {
     fs.mkdirSync(assetsPath, { recursive: true });
 }
-app.use('/assets', express.static(assetsPath));
+app.use('/assets', express.static(assetsPath, staticFileOptions));
 
 // Routes
 const vehicleRoutes = require('./routes/vehicle.routes');
@@ -71,8 +85,5 @@ app.listen(PORT, () => {
 
 // Export the Express app
 module.exports = app;
-
-
-
 
 
