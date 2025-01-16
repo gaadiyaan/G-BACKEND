@@ -1,12 +1,44 @@
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const fs = require('fs');
 
 const app = express();
+
+// CORS configuration
+app.use(cors({
+    origin: [
+        'https://gaadiyaan.com',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500',
+        'http://localhost:5506',
+        'http://127.0.0.1:5506'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
+    credentials: true
+}));
 
 // Basic middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from uploads directory
+const uploadsPath = path.join(__dirname, '../../uploads');
+console.log('Uploads directory path:', uploadsPath);
+if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsPath));
+
+// Serve static assets
+const assetsPath = path.join(__dirname, 'assets');
+console.log('Assets directory path:', assetsPath);
+if (!fs.existsSync(assetsPath)) {
+    fs.mkdirSync(assetsPath, { recursive: true });
+}
+app.use('/assets', express.static(assetsPath));
 
 // Routes
 const vehicleRoutes = require('./routes/vehicle.routes');
@@ -39,3 +71,5 @@ app.listen(PORT, () => {
 
 // Export the Express app
 module.exports = app;
+
+
