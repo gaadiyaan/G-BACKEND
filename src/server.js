@@ -44,15 +44,7 @@ console.log('Uploads directory path:', uploadsPath);
 if (!fs.existsSync(uploadsPath)) {
     fs.mkdirSync(uploadsPath, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsPath, staticFileOptions));
-
-// Serve static assets
-const assetsPath = path.join(__dirname, 'assets');
-console.log('Assets directory path:', assetsPath);
-if (!fs.existsSync(assetsPath)) {
-    fs.mkdirSync(assetsPath, { recursive: true });
-}
-app.use('/assets', express.static(assetsPath, staticFileOptions));
+app.use('/uploads', express.static(uploadsPath));
 
 // Routes
 const vehicleRoutes = require('./routes/vehicle.routes');
