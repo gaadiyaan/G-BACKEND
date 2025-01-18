@@ -48,7 +48,10 @@ app.use('/uploads', express.static(uploadsPath));
 
 // Routes
 const vehicleRoutes = require('./routes/vehicle.routes');
+const userRoutes = require('./routes/user.routes');
+
 app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
