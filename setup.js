@@ -25,7 +25,7 @@ async function setup() {
                 full_name VARCHAR(255) NOT NULL,
                 dealership_name VARCHAR(255),
                 phone VARCHAR(20),
-                dealer_id VARCHAR(20),
+                dealer_id VARCHAR(20) UNIQUE,
                 user_type ENUM('dealer', 'buyer', 'admin') NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
