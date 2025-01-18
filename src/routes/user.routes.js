@@ -22,6 +22,21 @@ router.put('/profile', async (req, res) => {
             });
         }
 
+        // Check if dealer_id is unique (except for the current user's email)
+        if (dealer_id) {
+            const [existingWithId] = await db.query(
+                'SELECT * FROM dealer_info WHERE dealer_id = ? AND email != ?',
+                [dealer_id, email]
+            );
+            
+            if (existingWithId.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This dealer ID is already in use'
+                });
+            }
+        }
+
         // Check if dealer exists
         const [existingDealers] = await db.query(
             'SELECT * FROM dealer_info WHERE email = ?',
@@ -108,6 +123,51 @@ router.get('/dealer/:email', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching dealer info',
+            error: error.message
+        });
+    }
+});
+
+// Function to check if dealer ID exists
+async function isDealerIdUnique(dealerId) {
+    const [existing] = await db.query(
+        'SELECT COUNT(*) as count FROM dealer_info WHERE dealer_id = ?',
+        [dealerId]
+    );
+    return existing[0].count === 0;
+}
+
+// Function to generate unique dealer ID
+async function generateUniqueDealerId() {
+    const year = new Date().getFullYear();
+    let counter = 1;
+    let dealerId;
+    
+    do {
+        dealerId = `GD${year}${String(counter).padStart(3, '0')}`;
+        counter++;
+    } while (!(await isDealerIdUnique(dealerId)) && counter < 999);
+
+    if (counter >= 999) {
+        throw new Error('Unable to generate unique dealer ID');
+    }
+
+    return dealerId;
+}
+
+// Endpoint to generate unique dealer ID
+router.get('/generate-dealer-id', async (req, res) => {
+    try {
+        const dealerId = await generateUniqueDealerId();
+        res.json({
+            success: true,
+            dealer_id: dealerId
+        });
+    } catch (error) {
+        console.error('Error generating dealer ID:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error generating dealer ID',
             error: error.message
         });
     }
