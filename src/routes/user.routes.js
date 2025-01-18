@@ -81,4 +81,36 @@ router.put('/profile', async (req, res) => {
     }
 });
 
+// Get dealer info by email
+router.get('/dealer/:email', async (req, res) => {
+    try {
+        const email = req.params.email;
+        
+        const [dealer] = await db.query(
+            'SELECT * FROM dealer_info WHERE email = ?',
+            [email]
+        );
+
+        if (dealer.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Dealer not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            dealer: dealer[0]
+        });
+
+    } catch (error) {
+        console.error('Error fetching dealer info:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching dealer info',
+            error: error.message
+        });
+    }
+});
+
 module.exports = router; 
