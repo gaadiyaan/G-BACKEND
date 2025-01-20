@@ -67,7 +67,8 @@ const VehicleModel = {
             transmission: vehicleData.transmission.toLowerCase(),
             specifications: Array.isArray(vehicleData.specifications) ? JSON.stringify(vehicleData.specifications) : null,
             features: vehicleData.features && Object.keys(vehicleData.features).length > 0 ? JSON.stringify(vehicleData.features) : null,
-            images: Array.isArray(vehicleData.images) ? JSON.stringify(vehicleData.images) : vehicleData.images
+            images: Array.isArray(vehicleData.images) ? JSON.stringify(vehicleData.images) : vehicleData.images,
+            created_by_email: vehicleData.created_by_email
         };
 
         console.log('\nFormatted data for DB:', JSON.stringify(formattedData, null, 2));
