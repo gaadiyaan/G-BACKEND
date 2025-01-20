@@ -238,7 +238,7 @@ router.post('/', upload.array('vehicleImages', 10), handleMulterError, async (re
         
         console.log('Generated image URLs:', imageUrls);
         
-        // Parse numeric values
+        // Parse numeric values and ensure proper data types
         const vehicleData = {
             carTitle: req.body.carTitle,
             price: parseFloat(req.body.price),
@@ -248,17 +248,42 @@ router.post('/', upload.array('vehicleImages', 10), handleMulterError, async (re
             model: req.body.model,
             registrationYear: parseInt(req.body.registrationYear),
             insurance: req.body.insurance,
-            fuelType: req.body.fuelType,
+            fuelType: req.body.fuelType.toLowerCase(),
             seats: parseInt(req.body.seats),
             kmsDriven: parseInt(req.body.kmsDriven),
             location: req.body.location,
             ownership: req.body.ownership,
             engineDisplacement: parseInt(req.body.engineDisplacement),
-            transmission: req.body.transmission,
+            transmission: req.body.transmission.toLowerCase(),
             specifications: req.body.specifications ? JSON.parse(req.body.specifications) : [],
             features: req.body.features ? JSON.parse(req.body.features) : {},
-            images: imageUrls // Pass as array, let the model handle stringification
+            images: imageUrls,
+            created_by_email: req.body.created_by_email
         };
+
+        // Validate required fields
+        const requiredFields = [
+            'carTitle', 'price', 'year', 'make', 'model', 'registrationYear',
+            'insurance', 'fuelType', 'seats', 'kmsDriven', 'location',
+            'ownership', 'engineDisplacement', 'transmission', 'created_by_email'
+        ];
+
+        const missingFields = requiredFields.filter(field => !vehicleData[field]);
+        if (missingFields.length > 0) {
+            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        }
+
+        // Validate fuel type
+        const validFuelTypes = ['petrol', 'diesel', 'cng', 'electric', 'hybrid'];
+        if (!validFuelTypes.includes(vehicleData.fuelType)) {
+            throw new Error('Invalid fuel type');
+        }
+
+        // Validate transmission
+        const validTransmissions = ['manual', 'automatic'];
+        if (!validTransmissions.includes(vehicleData.transmission)) {
+            throw new Error('Invalid transmission type');
+        }
         
         console.log('\nProcessed vehicle data:', JSON.stringify(vehicleData, null, 2));
 
