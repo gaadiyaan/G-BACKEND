@@ -1,71 +1,84 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
-const mysql = require('mysql2/promise');
+const fs = require('fs');
 
-async function setup() {
-    // First connection without database to create it
-    const connection = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD
-    });
+const app = express();
 
-    try {
-        // Create database if it doesn't exist
-        await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
-        console.log(`Database ${process.env.DB_NAME} created or already exists`);
+// CORS configuration
+app.use(cors({
+    origin: [
+        'https://gaadiyaan.com',
+        'http://gaadiyaan.com',
+        'https://www.gaadiyaan.com',
+        'http://www.gaadiyaan.com',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500',
+        'http://localhost:5506',
+        'http://127.0.0.1:5506'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With', 'Accept'],
+    credentials: true,
+    exposedHeaders: ['Content-Length', 'Content-Type']
+}));
 
-        // Use the database
-        await connection.query(`USE ${process.env.DB_NAME}`);
-
-        // Create dealer_info table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS dealer_info (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                email VARCHAR(255) NOT NULL UNIQUE,
-                full_name VARCHAR(255) NOT NULL,
-                dealership_name VARCHAR(255),
-                phone VARCHAR(20),
-                dealer_id VARCHAR(20) UNIQUE,
-                user_type ENUM('dealer', 'buyer', 'admin') NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        `);
-        console.log('Dealer info table created or already exists');
-
-        // Create vehicle_listings table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS vehicle_listings (
-                id INT PRIMARY KEY AUTO_INCREMENT,
-                car_title VARCHAR(255) NOT NULL,
-                price DECIMAL(10, 2) NOT NULL,
-                year INT NOT NULL,
-                make VARCHAR(100) NOT NULL,
-                model VARCHAR(100) NOT NULL,
-                registration_year INT NOT NULL,
-                insurance VARCHAR(100) NOT NULL,
-                fuel_type ENUM('petrol', 'diesel', 'cng', 'electric', 'hybrid') NOT NULL,
-                seats INT NOT NULL,
-                kms_driven INT NOT NULL,
-                location VARCHAR(255) NOT NULL,
-                ownership VARCHAR(20) NOT NULL,
-                engine_displacement INT NOT NULL,
-                transmission ENUM('manual', 'automatic') NOT NULL,
-                images JSON,
-                specifications JSON,
-                features JSON,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-            )
-        `);
-        console.log('Vehicle listings table created or already exists');
-
-        console.log('Database setup completed successfully!');
-    } catch (err) {
-        console.error('Error setting up database:', err);
-    } finally {
-        await connection.end();
+// Enable CORS for static files
+const staticFileOptions = {
+    setHeaders: (res, path, stat) => {
+        res.set('Access-Control-Allow-Origin', 'https://gaadiyaan.com');
+        res.set('Access-Control-Allow-Methods', 'GET');
+        res.set('Access-Control-Allow-Headers', 'Content-Type');
+        res.set('Access-Control-Allow-Credentials', 'true');
     }
-}
+};
 
-setup(); 
+// Basic middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from uploads directory
+const uploadsPath = path.join(__dirname, '../../uploads');
+console.log('Uploads directory path:', uploadsPath);
+if (!fs.existsSync(uploadsPath)) {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsPath));
+
+// Routes
+const vehicleRoutes = require('./routes/vehicle.routes');
+const userRoutes = require('./routes/user.routes');
+
+app.use('/api/vehicles', vehicleRoutes);
+app.use('/api/users', userRoutes);
+
+// Basic route for testing
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to Gaadiyaan API',
+    env: process.env.NODE_ENV,
+    database: process.env.DB_HOST ? 'configured' : 'not configured'
+  });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error details:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Something went wrong!',
+    error: err.message
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// Export the Express app
+module.exports = app;
+
+
