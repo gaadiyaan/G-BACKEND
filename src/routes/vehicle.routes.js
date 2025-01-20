@@ -55,6 +55,7 @@ const handleMulterError = (err, req, res, next) => {
 // Get all vehicle listings with filters, sorting and pagination
 router.get('/', async (req, res) => {
     try {
+        console.log('Received request params:', req.query);
         const {
             minPrice,
             maxPrice,
@@ -74,7 +75,8 @@ router.get('/', async (req, res) => {
 
         if (dealer_email) {
             whereClause.push('created_by_email = ?');
-            params.push(dealer_email);
+            params.push(decodeURIComponent(dealer_email));
+            console.log('Filtering by dealer email:', decodeURIComponent(dealer_email));
         }
 
         if (minPrice) {
@@ -139,10 +141,13 @@ router.get('/', async (req, res) => {
             countQuery += ' WHERE ' + whereClause.join(' AND ');
         }
 
+        console.log('Executing query:', query);
+        console.log('With parameters:', params);
+
         // Execute queries
         const [listings] = await db.query(query, params);
         const [countResult] = await db.query(countQuery, params.slice(0, -2));
-        
+
         // Ensure we have valid results
         if (!Array.isArray(listings)) {
             throw new Error('Invalid listings data received');
@@ -186,7 +191,7 @@ router.get('/', async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching listings:', error);
+        console.error('Error in GET /vehicles:', error);
         res.status(500).json({
             success: false,
             message: 'Error fetching vehicle listings',
