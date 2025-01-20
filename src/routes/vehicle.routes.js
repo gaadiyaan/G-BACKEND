@@ -64,12 +64,18 @@ router.get('/', async (req, res) => {
             search,
             sortBy,
             page = 1,
-            limit = 10
+            limit = 10,
+            dealer_email
         } = req.query;
 
         // Build WHERE clause
         let whereClause = [];
         let params = [];
+
+        if (dealer_email) {
+            whereClause.push('created_by_email = ?');
+            params.push(dealer_email);
+        }
 
         if (minPrice) {
             whereClause.push('price >= ?');
