@@ -19,7 +19,7 @@ const createTableQuery = `
     ownership VARCHAR(20) NOT NULL,
     engine_displacement INT NOT NULL,
     transmission ENUM('manual', 'automatic') NOT NULL,
-    images LONGBLOB NULL DEFAULT NULL,
+    images JSON NULL DEFAULT NULL,
     specifications JSON NULL DEFAULT NULL,
     features JSON NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
