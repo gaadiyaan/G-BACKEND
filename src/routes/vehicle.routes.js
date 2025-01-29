@@ -221,24 +221,25 @@ router.get('/:id', async (req, res) => {
 // Create new vehicle listing with image upload
 router.post('/', upload.array('vehicleImages', 10), handleMulterError, async (req, res) => {
     try {
-        console.log('\n--- New Vehicle Listing Request ---');
-        console.log('Headers:', req.headers);
-        console.log('Body fields:', req.body);
-        console.log('Files:', req.files);
+        const imageBuffers = [];
         
-        // Process uploaded files and ensure we have the full URLs
-        const imageUrls = req.files && req.files.length > 0 
-            ? req.files.map(file => `${BASE_URL}/uploads/vehicles/${file.filename}`)
-            : [];
+        // Process each uploaded file
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                // Convert image to base64
+                const base64Image = file.buffer.toString('base64');
+                imageBuffers.push(base64Image);
+            }
+        }
         
-        console.log('Generated image URLs:', imageUrls);
+        // Convert array of base64 strings to JSON string for storage
+        const imagesJSON = JSON.stringify(imageBuffers);
         
         // Get dealer_id from request body
         if (!req.body.dealer_id) {
             throw new Error('dealer_id is required');
         }
         
-        // Parse numeric values
         const vehicleData = {
             dealer_id: req.body.dealer_id,
             carTitle: req.body.carTitle,
@@ -258,35 +259,25 @@ router.post('/', upload.array('vehicleImages', 10), handleMulterError, async (re
             transmission: req.body.transmission,
             specifications: req.body.specifications ? JSON.parse(req.body.specifications) : [],
             features: req.body.features ? JSON.parse(req.body.features) : {},
-            images: imageUrls // Pass as array, let the model handle stringification
+            images: imagesJSON
         };
-        
-        console.log('\nProcessed vehicle data:', JSON.stringify(vehicleData, null, 2));
 
-        const result = await VehicleModel.create(vehicleData);
-        console.log('\nDatabase result:', result);
-        
+        // Save to database
+        const result = await db.query(
+            'INSERT INTO vehicle_listings SET ?',
+            vehicleData
+        );
+
         res.status(201).json({
             success: true,
             message: 'Vehicle listing created successfully',
-            data: result
+            data: { id: result.insertId }
         });
     } catch (error) {
-        console.error('Error details:', error);
-        
-        // Clean up uploaded files if database operation fails
-        if (req.files) {
-            req.files.forEach(file => {
-                const filePath = path.join(uploadDir, file.filename);
-                fs.unlink(filePath, err => {
-                    if (err) console.error('Error deleting file:', err);
-                });
-            });
-        }
-        
+        console.error('Error in vehicle creation:', error);
         res.status(500).json({
             success: false,
-            message: 'Error creating vehicle listing',
+            message: 'Failed to create vehicle listing',
             error: error.message
         });
     }
