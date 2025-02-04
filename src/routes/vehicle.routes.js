@@ -397,4 +397,122 @@ router.post('/test', async (req, res) => {
     }
 });
 
+// Get unique makes
+router.get('/makes', async (req, res) => {
+    try {
+        const [makes] = await db.query(
+            'SELECT DISTINCT make FROM vehicle_listings ORDER BY make ASC'
+        );
+        
+        res.json({
+            success: true,
+            makes: makes.map(m => m.make)
+        });
+    } catch (error) {
+        console.error('Error fetching makes:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching makes',
+            error: error.message
+        });
+    }
+});
+
+// Get models for a specific make
+router.get('/models', async (req, res) => {
+    try {
+        const { make } = req.query;
+        if (!make) {
+            return res.status(400).json({
+                success: false,
+                message: 'Make parameter is required'
+            });
+        }
+
+        const [models] = await db.query(
+            'SELECT DISTINCT model FROM vehicle_listings WHERE make = ? ORDER BY model ASC',
+            [make]
+        );
+        
+        res.json({
+            success: true,
+            models: models.map(m => m.model)
+        });
+    } catch (error) {
+        console.error('Error fetching models:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching models',
+            error: error.message
+        });
+    }
+});
+
+// Get min and max prices
+router.get('/price-range', async (req, res) => {
+    try {
+        const [result] = await db.query(
+            'SELECT MIN(price) as minPrice, MAX(price) as maxPrice FROM vehicle_listings'
+        );
+        
+        res.json({
+            success: true,
+            priceRange: {
+                min: result[0].minPrice || 200000,
+                max: result[0].maxPrice || 1000000
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching price range:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching price range',
+            error: error.message
+        });
+    }
+});
+
+// Get available years
+router.get('/years', async (req, res) => {
+    try {
+        const [years] = await db.query(
+            'SELECT DISTINCT year FROM vehicle_listings ORDER BY year DESC'
+        );
+        
+        res.json({
+            success: true,
+            years: years.map(y => y.year)
+        });
+    } catch (error) {
+        console.error('Error fetching years:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching years',
+            error: error.message
+        });
+    }
+});
+
+// Get available locations
+router.get('/locations', async (req, res) => {
+    try {
+        const [locations] = await db.query(
+            'SELECT DISTINCT location FROM vehicle_listings ORDER BY location ASC'
+        );
+        
+        res.json({
+            success: true,
+            locations: locations.map(l => l.location)
+        });
+    } catch (error) {
+        console.error('Error fetching locations:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching locations',
+            error: error.message
+        });
+    }
+});
+
+
 module.exports = router; 
